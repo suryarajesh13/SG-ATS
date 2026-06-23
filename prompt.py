@@ -1,7 +1,7 @@
 import os
 from models import ModelProvider
 
-DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "llama3")
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gemma3:12b")
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
