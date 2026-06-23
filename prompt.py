@@ -8,7 +8,7 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 MODEL_PARAMETERS = {
     "llama3": {"temperature": 0.1, "top_p": 0.9},
     "mistral": {"temperature": 0.1, "top_p": 0.9},
-    "gemma3": {"temperature": 0.1, "top_p": 0.9},
+    "gemma3:12b": {"temperature": 0.1, "top_p": 0.9},
     "deepseek-r1": {"temperature": 0.1, "top_p": 0.9},
     "gemini-1.5-flash": {"temperature": 0.1, "top_p": 0.9},
     "gemini-1.5-pro": {"temperature": 0.1, "top_p": 0.9},
