@@ -53,7 +53,6 @@ class ResumeEvaluator:
 
         if isinstance(response, str):
             return response
-
         if (
             isinstance(response, dict)
             and "message" in response
@@ -61,10 +60,8 @@ class ResumeEvaluator:
             and "content" in response["message"]
         ):
             return response["message"]["content"]
-
         if hasattr(response, "text"):
             return response.text
-
         if hasattr(response, "content"):
             return response.content
 
@@ -84,6 +81,14 @@ class ResumeEvaluator:
         )
         return system_message, user_prompt
 
+    @staticmethod
+    def _sanitise_payload(payload: dict) -> dict:
+        if "key_strengths" in payload and isinstance(payload["key_strengths"], list):
+            payload["key_strengths"] = payload["key_strengths"][:5]
+        if "areas_for_improvement" in payload and isinstance(payload["areas_for_improvement"], list):
+            payload["areas_for_improvement"] = payload["areas_for_improvement"][:3]
+        return payload
+
     def evaluate_resume(self, resume_text: str) -> EvaluationData:
         system_message, user_prompt = self._build_prompt(
             resume_text=resume_text,
@@ -95,7 +100,7 @@ class ResumeEvaluator:
             response_schema=EvaluationData.model_json_schema(),
         )
         response_text = extract_json_from_response(response_text)
-        payload = json.loads(response_text)
+        payload = self._sanitise_payload(json.loads(response_text))
         return EvaluationData(**payload)
 
     def evaluate_resume_sg(
@@ -112,16 +117,13 @@ class ResumeEvaluator:
             role_type=role_type,
             target_job_title=target_job_title,
         )
-        # Do NOT pass response_schema for SG roles — dynamic Dict[str, CategoryScore]
-        # keys are unreliable with structured-output enforcement in most Ollama models.
-        # We rely on extract_json_from_response + manual Pydantic validation instead.
         response_text = self._call_llm(
             user_prompt=user_prompt,
             system_message=system_message,
             response_schema=None,
         )
         response_text = extract_json_from_response(response_text)
-        payload = json.loads(response_text)
+        payload = self._sanitise_payload(json.loads(response_text))
         evaluation = GenericSGEvaluation(**payload)
         assert_sg_categories(evaluation, role_type)
         return evaluation
