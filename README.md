@@ -1,266 +1,373 @@
-# SG-ATS
+# SG-ATS — AI Resume Scoring for Singapore Job Market
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Forked from interviewstreet/hiring-agent](https://img.shields.io/badge/fork-interviewstreet%2Fhiring--agent-blue)](https://github.com/interviewstreet/hiring-agent)
 
-AI-powered resume evaluation and scoring system, adapted for Singapore job-market use cases.
+> Forked from [interviewstreet/hiring-agent](https://github.com/interviewstreet/hiring-agent).  
+> Extended and adapted by [@suryarajesh13](https://github.com/suryarajesh13) for Singapore-specific
+> job roles with localised grading rubrics across Audit, Accounting, IT, HR, and Banking.
 
-This repository is **forked from** [interviewstreet/hiring-agent](https://github.com/interviewstreet/hiring-agent) and has been modified by me to support additional job roles with Singapore-specific scoring assumptions, criteria, and grading rubrics.
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Supported Role Types](#supported-role-types)
+- [AI Model Setup](#ai-model-setup)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Singapore Scoring Rubrics](#singapore-scoring-rubrics)
+- [Caching](#caching)
+- [Project Structure](#project-structure)
+- [License](#license)
+- [References](#references)
+
+---
 
 ## Overview
 
-SG-ATS is a resume evaluation pipeline that:
-- Extracts structured resume data from PDF files
-- Enriches candidate context with GitHub data where relevant
-- Uses LLM-based scoring to evaluate candidates
-- Outputs structured scoring, strengths, and areas for improvement
-- Supports both the original software rubric and multiple Singapore-specific role rubrics
+SG-ATS is an AI-powered resume evaluation system that scores resumes against role-specific rubrics
+tailored to the Singapore job market. It extracts structured data from PDF resumes using a local LLM
+via Ollama, then evaluates the candidate against a scoring framework that reflects Singapore's
+professional certification standards, industry expectations, and regulatory context.
 
-The project keeps the original software engineering evaluation path while extending it for selected Singapore job families where hiring signals are different from generic global ATS scoring.
+This project was forked from [interviewstreet/hiring-agent](https://github.com/interviewstreet/hiring-agent)
+and has been significantly modified to support Singapore-specific job roles with assumed grading criteria
+and rubrics based on local industry standards.
 
-## Fork attribution
+---
 
-This project is based on the upstream repository:
-- [interviewstreet/hiring-agent](https://github.com/interviewstreet/hiring-agent)
+## Supported Role Types
 
-The original project focuses on AI-assisted resume evaluation and scoring. This fork extends that idea for practical Singapore-specific screening scenarios.
+| Flag              | Role                           |
+|-------------------|--------------------------------|
+| `software`        | Software Engineering (default) |
+| `it_sg`           | IT Jobs (Singapore)            |
+| `accounting_sg`   | Accounting (Singapore)         |
+| `audit_sg`        | Auditing (Singapore)           |
+| `hr_sg`           | HR (Singapore)                 |
+| `banking_sg`      | Banking & Financial Services   |
 
-## What was modified in this fork
+---
 
-Compared with the upstream repository, this fork adds:
+## AI Model Setup
 
-- Singapore-specific evaluation paths for:
-  - IT jobs
-  - Accounting jobs
-  - Auditing jobs
-  - HR jobs
-  - Banking jobs
-- Role-based prompt templates
-- Flexible scoring schemas for non-software job families
-- Role-aware evaluation flow
-- CSV export for Singapore-specific role outputs
-- Rubric assumptions tailored to Singapore hiring context
+SG-ATS uses **Ollama** to run LLMs locally on your machine. No API key is required for Ollama models.
 
-## Supported role types
+### Step 1 — Install Ollama
 
-The system currently supports the following `role_type` values:
+Download and install from https://ollama.com/download.  
+Choose the **Windows** installer and run it.
 
-- `software` — original software engineering / HackerRank-style rubric
-- `it_sg` — Singapore IT / tech roles
-- `accounting_sg` — Singapore accounting roles
-- `audit_sg` — Singapore auditing roles
-- `hr_sg` — Singapore HR roles
-- `banking_sg` — Singapore banking roles
+Verify installation:
 
-## Why Singapore-specific rubrics were added
+```powershell
+ollama --version
+```
 
-A generic resume-scoring rubric is often too broad for Singapore hiring, because different professions are shaped by different local institutions, frameworks, and regulatory expectations.
+---
 
-This fork therefore uses **assumed role-specific criteria and grading rubrics** based on common Singapore hiring signals. These are not official standards, but practical screening assumptions designed to better reflect how employers in Singapore often assess resumes.
+### Step 2 — Pull a Model
 
-## Rubric justification by role
+SG-ATS works best with `gemma3:12b`. Pull it before running the tool:
 
-### 1) IT jobs in Singapore
+```powershell
+ollama pull gemma3:12b
+```
 
-The IT rubric focuses on:
-- Technical depth
-- Project delivery
-- Production or internship exposure
-- Professional readiness
+**Model recommendations by RAM:**
 
-This reflects how Singapore tech hiring commonly values applied technical delivery, role-relevant stacks, and practical execution rather than academic pedigree alone.
+| Your RAM | Recommended Model | Notes                                       |
+|----------|-------------------|---------------------------------------------|
+| < 6 GB   | `phi3:mini`       | Fast but lower accuracy on structured JSON  |
+| 8 GB     | `gemma2:9b`       | Good speed/accuracy balance                 |
+| 16 GB    | `gemma3:12b`      | ✅ Best overall — recommended               |
+| 32 GB+   | `gemma3:27b`      | Highest accuracy, slower                    |
 
-Examples of signals considered:
-- Software, cloud, data, infrastructure, cybersecurity, or enterprise systems skills
-- Deployments, shipped projects, production systems, APIs, dashboards, automation
-- Certifications or job-ready pathways relevant to local ICT roles
+> `gemma3:12b` is the recommended default. It scores highest on structured JSON output tasks,
+> which this tool relies on for section extraction and evaluation. It runs well on 16 GB RAM.
 
-This rubric was designed with reference to Singapore’s ICT skills and capability framing.
+---
 
-### 2) Accounting jobs in Singapore
+### Step 3 — Start Ollama
 
-The accounting rubric focuses on:
-- Professional certifications and progression
-- Accounting experience
-- Finance systems and tools
-- Communication and reporting capability
+Keep Ollama running in a **separate terminal** before using SG-ATS:
 
-Examples of signals considered:
-- CA (Singapore), SCAQ, ISCA-related progression
-- ACCA, CPA Australia, ICAEW, or similar professional qualifications
-- Full-set accounts, month-end close, reconciliations, reporting, GST-related work
-- SAP, Oracle, Xero, QuickBooks, advanced Excel, finance reporting tools
+```powershell
+ollama serve
+```
 
-This reflects the fact that accounting hiring in Singapore often rewards visible professional progression and practical finance operations capability.
+Ollama listens on `http://localhost:11434` by default. You can confirm it is running by visiting
+that URL in a browser — you should see `Ollama is running`.
 
-### 3) Auditing jobs in Singapore
+---
 
-The audit rubric focuses on:
-- Audit credentials
-- Audit experience
-- Controls and regulatory familiarity
-- Audit tools and analytical ability
+### Step 4 — Configure the Model
 
-Examples of signals considered:
-- External or internal audit experience
-- Statutory audit, walkthroughs, controls testing, sampling, compliance work
-- SFRS familiarity, ACRA-related exposure, audit reporting, risk/control understanding
-- CaseWare, TeamMate, Excel, analytics, audit documentation quality
+Set the default model in `prompt.py`:
 
-This reflects the stronger importance of assurance exposure, standards familiarity, and structured audit work in Singapore audit hiring.
+```python
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gemma3:12b")
+```
 
-### 4) HR jobs in Singapore
+Or override it at runtime with the `--model` flag (see Usage below).
 
-The HR rubric focuses on:
-- HR credentials
-- HR operations and specialization
-- Stakeholder management
-- HR systems and compliance
+---
 
-Examples of signals considered:
-- IHRP-related progression
-- Recruitment, onboarding, employee lifecycle, C&B, L&D, HRBP exposure
-- HRIS / ATS / payroll systems
-- Policy execution, coordination, documentation, and business partnering
+### Using Gemini Instead (Optional)
 
-This reflects how HR roles in Singapore are often evaluated on a mix of operational reliability, people-process ownership, and professional HR capability.
+If you prefer Google Gemini over a local model, add your API key to a `.env` file in the project root:
 
-### 5) Banking jobs in Singapore
+```env
+GEMINI_API_KEY=your_api_key_here
+```
 
-The banking rubric focuses on:
-- Banking credentials
-- Banking or operations experience
-- Regulatory and risk awareness
-- Systems and analytical skills
+Then pass a Gemini model name at runtime:
 
-Examples of signals considered:
-- Banking operations, relationship support, compliance, KYC, AML, onboarding, controls
-- CMFAS or IBF-related signals where relevant
-- Regulated environment exposure
-- Reporting, reconciliations, transaction monitoring, analytical tooling
+```powershell
+python score.py resume.pdf --role-type audit_sg --model gemini-1.5-flash
+```
 
-This reflects the higher importance of regulated-environment readiness in Singapore banking and financial-services hiring.
+Get a Gemini API key at https://aistudio.google.com/app/apikey.
 
-## Important note on the rubrics
+---
 
-These Singapore-specific rubrics are **assumed heuristics**, not official grading standards issued by any authority, employer, or regulator.
+### Common Model Errors
 
-They are intended to:
-- make resume scoring more relevant to Singapore hiring context,
-- provide more explainable screening output,
-- and reduce mismatch from using one generic scoring model across very different professions.
+| Error                              | Fix                                         |
+|------------------------------------|---------------------------------------------|
+| `ModuleNotFoundError`              | Run `pip install -r requirements.txt` again |
+| `Connection refused on port 11434` | Ollama isn't running — run `ollama serve`   |
+| `404 Not Found` on `/api/chat`     | Model not pulled — run `ollama pull gemma3:12b` |
+| `.env not loaded`                  | Run `pip install python-dotenv`             |
 
-They should be treated as decision-support logic, not as a substitute for human hiring judgment.
-
-## Scoring philosophy
-
-All rubrics in this project follow these principles:
-
-- Do **not** score based on name, gender, nationality, race, school prestige, or GPA alone
-- Score based on role-relevant evidence
-- Prefer demonstrated work, projects, tools, certifications, and outcomes
-- Require evidence strings for every category
-- Keep output structured and explainable
-
-## Project structure
-
-A simplified view of the main files:
-
-- `score.py` — CLI entry point, caching, orchestration, printing, CSV export
-- `evaluator.py` — LLM evaluation dispatcher for software and Singapore roles
-- `models.py` — Pydantic models for resume data and scoring output
-- `transform.py` — resume transformation and CSV flattening utilities
-- `prompt.py` — model/provider defaults
-- `prompts/template_manager.py` — role-aware Jinja template loader
-- `prompts/templates/` — scoring criteria templates and system messages
-- `pdf.py` — PDF parsing / extraction pipeline
-- `github.py` — GitHub enrichment logic
+---
 
 ## Installation
 
-Clone the repository and install dependencies:
-
-```bash
+```powershell
+# Clone the repo
 git clone https://github.com/suryarajesh13/SG-ATS.git
 cd SG-ATS
+
+# Create a Python 3.12 environment (recommended)
+conda create -n sgats python=3.12 -y
+conda activate sgats
+
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-Set up your environment variables as needed using the provided example file.
+> ⚠️ Python 3.14 is not fully supported. Use Python 3.12 to avoid build failures with
+> `pydantic-core` and other compiled packages.
+
+---
 
 ## Usage
 
-### Default software evaluation
-
-```bash
-python score.py path/to/resume.pdf --role-type software
+```powershell
+python score.py "path\\to\\resume.pdf" --role-type <role> --target-job-title "<title>"
 ```
 
-### Singapore IT role
+**Examples:**
 
-```bash
-python score.py path/to/resume.pdf --role-type it_sg --target-job-title "Data Analyst"
+```powershell
+# Audit role
+python score.py "C:\\resumes\\john.pdf" --role-type audit_sg --target-job-title "Associate FAAS EY"
+
+# IT role with a specific model
+python score.py "C:\\resumes\\jane.pdf" --role-type it_sg --target-job-title "Data Analyst" --model gemma3:12b
+
+# Software engineering (default rubric)
+python score.py "C:\\resumes\\alex.pdf"
 ```
 
-### Singapore accounting role
+**All flags:**
 
-```bash
-python score.py path/to/resume.pdf --role-type accounting_sg --target-job-title "Finance Executive"
+| Flag                  | Description                                   | Default      |
+|-----------------------|-----------------------------------------------|--------------|
+| `pdf_path`            | Path to resume PDF (required, positional)     | —            |
+| `--role-type`         | Evaluation rubric to use                      | `software`   |
+| `--target-job-title`  | Specific job title for context-aware scoring  | *(empty)*    |
+| `--model`             | Ollama or Gemini model name                   | `gemma3:12b` |
+
+---
+
+## Singapore Scoring Rubrics
+
+Each Singapore role is scored across 4 categories (total 100 points) plus optional bonus/deductions.
+
+### Audit (`audit_sg`)
+
+| Category                   | Max | Signals                                                    |
+|----------------------------|-----|------------------------------------------------------------|
+| `sg_audit_credentials`     | 30  | CA Singapore, ACCA, ICAEW, ISCA, CPA Australia             |
+| `audit_experience`         | 35  | External/internal audit, SFRS, ACRA, walkthroughs          |
+| `controls_and_regulatory`  | 25  | MAS regulations, compliance, risk frameworks               |
+| `audit_tools_and_analysis` | 10  | CaseWare, TeamMate, Excel, data analytics                  |
+
+**Rubric justification:** Singapore audit professionals are expected to hold qualifications
+recognised by ISCA or equivalent bodies (ACCA, ICAEW, CPA Australia). Statutory audit exposure
+under SFRS and familiarity with ACRA-regulated filings are core requirements for public accounting
+firms such as the Big 4 operating in Singapore.
+
+---
+
+### Accounting (`accounting_sg`)
+
+| Category                     | Max | Signals                                                  |
+|------------------------------|-----|----------------------------------------------------------|
+| `sg_certifications`          | 30  | CA Singapore, SCAQ, ISCA, ACCA, CPA Australia, ICAEW    |
+| `accounting_experience`      | 35  | Full-set accounts, GST, month-end close, reporting       |
+| `finance_systems`            | 25  | SAP, Oracle, Xero, QuickBooks, advanced Excel            |
+| `professional_communication` | 10  | Report writing, stakeholder communication                |
+
+**Rubric justification:** Singapore accounting roles require IRAS GST compliance awareness and
+familiarity with SFRS. CA (Singapore) via ISCA is the primary professional qualification for
+accountants in Singapore. Only a registered Public Accountant under ACRA may sign off on
+Singapore-incorporated company audits.
+
+---
+
+### IT (`it_sg`)
+
+| Category                  | Max | Signals                                                    |
+|---------------------------|-----|------------------------------------------------------------|
+| `sg_technical_skills`     | 35  | Software, cloud, data, infrastructure, cybersecurity       |
+| `projects_and_delivery`   | 30  | Shipped projects, APIs, dashboards, automation             |
+| `production_experience`   | 25  | Internship/work exposure, real systems, client delivery    |
+| `professional_readiness`  | 10  | ICT certifications, communication skills                   |
+
+**Rubric justification:** Based on Singapore's ICT Skills Framework and IMDA's national digital
+talent strategy. Practical delivery and production exposure are weighted highly as Singapore
+employers prioritise candidates who can contribute immediately in agile delivery environments.
+
+---
+
+### HR (`hr_sg`)
+
+| Category                             | Max | Signals                                          |
+|--------------------------------------|-----|--------------------------------------------------|
+| `sg_hr_credentials`                  | 30  | IHRP certification, HR degrees or diplomas       |
+| `hr_operations_and_specialisation`   | 35  | Recruitment, onboarding, C&B, L&D, HRBP          |
+| `stakeholder_management`             | 25  | Business partnering, policy execution            |
+| `hr_systems_and_compliance`          | 10  | HRIS, ATS, payroll, MOM compliance               |
+
+**Rubric justification:** IHRP (Institute for Human Resource Professionals) is the national HR
+credentialing body in Singapore. MOM compliance (Employment Act, CPF, work pass regulations) is
+a mandatory operational requirement for all HR professionals in Singapore.
+
+---
+
+### Banking (`banking_sg`)
+
+| Category                   | Max | Signals                                                    |
+|----------------------------|-----|------------------------------------------------------------|
+| `sg_banking_credentials`   | 30  | CMFAS, IBF certifications, finance qualifications          |
+| `banking_experience`       | 35  | Banking ops, KYC, AML, onboarding, reconciliations         |
+| `regulatory_and_risk`      | 25  | MAS regulations, AML/CFT, compliance, monitoring           |
+| `systems_and_analysis`     | 10  | Excel, reporting tools, banking systems                    |
+
+**Rubric justification:** MAS (Monetary Authority of Singapore) regulatory compliance and
+CMFAS/IBF certifications are baseline requirements for client-facing and operations roles in
+Singapore financial institutions. AML/CFT knowledge is mandated under Singapore's PSMA and
+Banking Act frameworks.
+
+> ⚠️ These rubrics are designed for resume screening and prioritisation only. They are not a
+> substitute for human hiring judgment or professional licensing advice. Scores do not consider
+> name, gender, nationality, race, school prestige, or GPA alone.
+
+---
+
+## Caching
+
+When `DEVELOPMENT_MODE = True` in `config.py`, the tool caches results to avoid re-running
+expensive LLM calls:
+
+| Cache File                                              | Contents              |
+|---------------------------------------------------------|-----------------------|
+| `cache/resumecache_<name>.json`                         | Parsed resume JSON    |
+| `cache/githubcache_<name>.json`                         | GitHub profile data   |
+| `cache/evalcache_<name>_<role>_<title>_<model>.json`    | Evaluation scores     |
+
+Delete the relevant cache file to force a fresh LLM run.
+
+---
+
+## Project Structure
+
+```
+SG-ATS/
+├── score.py                    # Main entry point
+├── evaluator.py                # LLM evaluation logic
+├── pdf.py                      # PDF text extraction and section parsing
+├── models.py                   # Pydantic data models
+├── llm_utils.py                # LLM provider utilities
+├── prompt.py                   # Model config and parameters
+├── github.py                   # GitHub profile fetching
+├── transform.py                # Data transformation utilities
+├── config.py                   # App configuration
+├── prompts/
+│   ├── template_manager.py     # Jinja2 template routing
+│   └── templates/              # Role-specific prompt templates
+│       ├── system_message.jinja
+│       ├── basics.jinja
+│       ├── work.jinja
+│       ├── education.jinja
+│       ├── skills.jinja
+│       ├── projects.jinja
+│       ├── awards.jinja
+│       ├── resume_evaluation_system_message.jinja
+│       ├── resume_evaluation_system_message_sg.jinja
+│       ├── resume_evaluation_criteria.jinja
+│       ├── resume_evaluation_criteria_it_sg.jinja
+│       ├── resume_evaluation_criteria_accounting_sg.jinja
+│       ├── resume_evaluation_criteria_audit_sg.jinja
+│       ├── resume_evaluation_criteria_hr_sg.jinja
+│       └── resume_evaluation_criteria_banking_sg.jinja
+├── cache/                      # Auto-generated cache files
+├── LICENSE
+├── NOTICE
+└── requirements.txt
 ```
 
-### Singapore audit role
+---
 
-```bash
-python score.py path/to/resume.pdf --role-type audit_sg --target-job-title "Audit Associate"
-```
+## License
 
-### Singapore HR role
+MIT License
 
-```bash
-python score.py path/to/resume.pdf --role-type hr_sg --target-job-title "HR Executive"
-```
+Modifications Copyright (c) 2026 Suryaraj  
+Original Copyright (c) 2025 HackerRank (InterviewStreet Inc.)
 
-### Singapore banking role
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-```bash
-python score.py path/to/resume.pdf --role-type banking_sg --target-job-title "AML Analyst"
-```
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-## Output
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
-The system can produce:
-- Console-readable evaluation summaries
-- Structured category scores
-- Bonus points and deductions
-- Key strengths
-- Areas for improvement
-- CSV exports for downstream analysis
+---
 
-## GitHub enrichment
+## References
 
-GitHub enrichment is most relevant for:
-- `software`
-- `it_sg`
-
-For non-technical roles such as accounting, audit, HR, and banking, GitHub signals are generally less important and may be excluded from role-specific scoring emphasis.
-
-## Disclaimer
-
-This repository is an experimental screening and evaluation tool.
-
-It does **not**:
-- guarantee hiring outcomes,
-- represent official employer policy,
-- replace interviews,
-- replace regulator guidance,
-- or certify candidate suitability.
-
-The Singapore role rubrics are based on practical assumptions about what employers may value, not formal or legally binding standards.
-
-## Acknowledgements
-
-- Upstream project: [interviewstreet/hiring-agent](https://github.com/interviewstreet/hiring-agent)
-- Singapore contextual inspiration from publicly available professional and skills frameworks relevant to ICT, accountancy, HR, and banking
-
-## Maintainer note
-
-This fork was created to explore how a resume scoring system can be adapted beyond software engineering and made more relevant for Singapore-specific roles using explainable, role-based evaluation logic.
+- [ISCA / CA (Singapore)](https://isca.org.sg)
+- [ACCA Singapore](https://www.accaglobal.com/sg/en.html)
+- [IHRP Certification](https://ihrp.sg/certifications-overview/)
+- [IBF / CMFAS Singapore](https://www.ibf.org.sg)
+- [MAS Regulations](https://www.mas.gov.sg)
+- [IMDA ICT Skills Framework](https://www.imda.gov.sg)
+- [Ollama](https://ollama.com)
+- [Original upstream repo — interviewstreet/hiring-agent](https://github.com/interviewstreet/hiring-agent)
+"""
