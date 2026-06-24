@@ -153,23 +153,30 @@ class JSONResume(BaseModel):
     projects: List[Project] = Field(default_factory=list)
     meta: Dict = Field(default_factory=dict)
 
+
 class BasicsSection(BaseModel):
     basics: Optional[Basics] = None
+
 
 class WorkSection(BaseModel):
     work: List[Work] = Field(default_factory=list)
 
+
 class EducationSection(BaseModel):
     education: List[Education] = Field(default_factory=list)
+
 
 class SkillsSection(BaseModel):
     skills: List[Skill] = Field(default_factory=list)
 
+
 class ProjectsSection(BaseModel):
     projects: List[Project] = Field(default_factory=list)
 
+
 class AwardsSection(BaseModel):
     awards: List[Award] = Field(default_factory=list)
+
 
 class CategoryScore(BaseModel):
     score: int = 0
@@ -248,16 +255,12 @@ class EvaluationData(BaseModel):
     @field_validator("key_strengths")
     @classmethod
     def strengths_limit(cls, value: List[str]) -> List[str]:
-        if len(value) > 5:
-            raise ValueError("key_strengths cannot exceed 5 items.")
-        return value
+        return value[:5]
 
     @field_validator("areas_for_improvement")
     @classmethod
     def improvements_limit(cls, value: List[str]) -> List[str]:
-        if len(value) > 3:
-            raise ValueError("areas_for_improvement cannot exceed 3 items.")
-        return value
+        return value[:3]
 
     def total_score(self) -> int:
         raw = (
@@ -321,16 +324,12 @@ class GenericSGEvaluation(BaseModel):
     @field_validator("key_strengths")
     @classmethod
     def strengths_limit(cls, value: List[str]) -> List[str]:
-        if len(value) > 5:
-            raise ValueError("key_strengths cannot exceed 5 items.")
-        return value
+        return value[:5]
 
     @field_validator("areas_for_improvement")
     @classmethod
     def improvements_limit(cls, value: List[str]) -> List[str]:
-        if len(value) > 3:
-            raise ValueError("areas_for_improvement cannot exceed 3 items.")
-        return value
+        return value[:3]
 
     @model_validator(mode="after")
     def validate_category_count(self) -> "GenericSGEvaluation":
@@ -364,4 +363,4 @@ def validate_sg_categories(evaluation: GenericSGEvaluation, role_type: str) -> L
 def assert_sg_categories(evaluation: GenericSGEvaluation, role_type: str) -> None:
     warnings = validate_sg_categories(evaluation, role_type)
     if warnings:
-        raise ValueError(" ; ".join(warnings))
+        raise ValueError(" ; ".join(warnings)))
