@@ -1,0 +1,32 @@
+Evaluate the following resume for a Singapore auditing role.
+{% if target_job_title %}Target job title: {{ target_job_title }}{% endif %}
+
+RESUME:
+{{ text_content }}
+
+Return a JSON object with this exact structure:
+{
+  "scores": {
+    "sg_audit_credentials": {"score": <int>, "max": 30, "evidence": "<string>"},
+    "audit_experience": {"score": <int>, "max": 35, "evidence": "<string>"},
+    "controls_and_regulatory": {"score": <int>, "max": 25, "evidence": "<string>"},
+    "audit_tools_and_analysis": {"score": <int>, "max": 10, "evidence": "<string>"}
+  },
+  "bonus_points": {"total": <int 0-20>, "breakdown": "<string>"},
+  "deductions": {"total": <int>, "reasons": "<string>"},
+  "key_strengths": ["<string>"],
+  "areas_for_improvement": ["<string>"]
+}
+
+Scoring guidance:
+- sg_audit_credentials (max 30): CA Singapore, ACCA, ICAEW, ISCA, CPA Australia, audit qualifications
+- audit_experience (max 35): external/internal audit, statutory audit, walkthroughs, controls testing, SFRS, ACRA
+- controls_and_regulatory (max 25): MAS regulations, compliance, risk/control frameworks, audit reporting
+- audit_tools_and_analysis (max 10): CaseWare, TeamMate, Excel, data analytics, audit documentation
+
+Rules:
+- score must not exceed max
+- key_strengths: max 5 items
+- areas_for_improvement: max 3 items
+- evidence must not be empty
+- Do NOT score based on name, gender, nationality, or school prestige
