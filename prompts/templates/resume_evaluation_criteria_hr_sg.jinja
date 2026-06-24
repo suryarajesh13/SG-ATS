@@ -1,0 +1,31 @@
+Evaluate the following resume for a Singapore HR role.
+{% if target_job_title %}Target job title: {{ target_job_title }}{% endif %}
+
+RESUME:
+{{ text_content }}
+
+Return a JSON object with this exact structure:
+{
+  "scores": {
+    "sg_hr_credentials": {"score": <int>, "max": 30, "evidence": "<string>"},
+    "hr_operations_and_specialisation": {"score": <int>, "max": 35, "evidence": "<string>"},
+    "stakeholder_management": {"score": <int>, "max": 25, "evidence": "<string>"},
+    "hr_systems_and_compliance": {"score": <int>, "max": 10, "evidence": "<string>"}
+  },
+  "bonus_points": {"total": <int 0-20>, "breakdown": "<string>"},
+  "deductions": {"total": <int>, "reasons": "<string>"},
+  "key_strengths": ["<string>"],
+  "areas_for_improvement": ["<string>"]
+}
+
+Scoring guidance:
+- sg_hr_credentials (max 30): IHRP certification, HR-related degrees or diplomas
+- hr_operations_and_specialisation (max 35): recruitment, onboarding, C&B, L&D, HRBP, employee lifecycle
+- stakeholder_management (max 25): business partnering, coordination, policy execution, documentation
+- hr_systems_and_compliance (max 10): HRIS, ATS, payroll systems, MOM compliance
+
+Rules:
+- score must not exceed max
+- key_strengths: max 5 items
+- areas_for_improvement: max 3 items
+- evidence must not be empty
