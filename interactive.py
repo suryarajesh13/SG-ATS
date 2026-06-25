@@ -1,34 +1,34 @@
-from __future__ import annotations
+rom __future__ import annotations
 
 import os
 
 ROLE_MENU = {
     "1": ("general", "General / Any Role"),
     "2": ("software", "Software / IT Jobs"),
-    "3": ("accounting_sg", "Accounting Jobs "),
-    "4": ("audit_sg", "Auditing Jobs "),
-    "5": ("hr_sg", "HR Jobs "),
-    "6": ("banking_sg", "Banking Jobs "),
+    "3": ("accounting_sg", "Accounting Jobs"),
+    "4": ("audit_sg", "Auditing Jobs"),
+    "5": ("hr_sg", "HR Jobs"),
+    "6": ("banking_sg", "Banking Jobs"),
 }
 
 
 def prompt_role() -> tuple[str, str]:
-    print("
-" + "=" * 55)
+    print("")
+    print("=" * 55)
     print("  SG-ATS  -  Resume Checker")
     print("=" * 55)
-    print("Select the type of resume you are checking:
-")
+    print("Select the type of resume you are checking:")
+    print("")
     for key, (_, label) in ROLE_MENU.items():
-        print(f"  [{key}]  {label}")
-    print()
+        print("  [" + key + "]  " + label)
+    print("")
     while True:
         choice = input("Enter your choice (1-6): ").strip()
         if choice in ROLE_MENU:
             role_type, label = ROLE_MENU[choice]
-            print(f"
-Selected: {label}
-")
+            print("")
+            print("Selected: " + label)
+            print("")
             return role_type, label
         print("Invalid choice. Please enter a number from 1 to 6.")
 
@@ -36,9 +36,9 @@ Selected: {label}
 def prompt_pdf_path() -> str:
     while True:
         path = input("Path to resume PDF: ").strip().strip('"').strip("'")
-        if os.path.isfile(path) and path.lower().endswith('.pdf'):
+        if os.path.isfile(path) and path.lower().endswith(".pdf"):
             return path
-        print(f"File not found or not a PDF: {path}")
+        print("File not found or not a PDF: " + path)
 
 
 def prompt_job_title() -> str:
@@ -46,7 +46,7 @@ def prompt_job_title() -> str:
 
 
 def prompt_model(default_model: str) -> str:
-    model = input(f"LLM model name (press Enter for default '{default_model}'): ").strip()
+    model = input("LLM model name (press Enter for default '" + default_model + "'): ").strip()
     return model if model else default_model
 
 
@@ -60,9 +60,9 @@ def main() -> None:
 
     model = prompt_model(DEFAULT_MODEL)
 
-    print("
-Evaluating resume, please wait...
-")
+    print("")
+    print("Evaluating resume, please wait...")
+    print("")
     run_evaluation(
         pdf_path=pdf_path,
         role_type=role_type,
@@ -71,5 +71,6 @@ Evaluating resume, please wait...
     )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
+
