@@ -31,8 +31,8 @@ logging.basicConfig(
 )
 
 ROLE_DISPLAY_LABELS = {
-    "software": "Software Engineering",
-    "it_sg": "IT Jobs (Singapore)",
+    "general": "General / Any Role",
+    "software": "Software / IT Jobs",
     "accounting_sg": "Accounting Jobs (Singapore)",
     "audit_sg": "Auditing Jobs (Singapore)",
     "hr_sg": "HR Jobs (Singapore)",
@@ -40,30 +40,36 @@ ROLE_DISPLAY_LABELS = {
 }
 
 CATEGORY_ICONS = {
-    "open_source": "\U0001f310",
-    "self_projects": "\U0001f680",
-    "production": "\U0001f3e2",
-    "technical_skills": "\U0001f4bb",
-    "sg_technical_skills": "\U0001f4bb",
-    "projects_and_delivery": "\U0001f680",
-    "production_experience": "\U0001f3e2",
-    "professional_readiness": "\U0001f4cb",
-    "sg_certifications": "\U0001f393",
-    "accounting_experience": "\U0001f4ca",
-    "finance_systems": "\U0001f5a5\ufe0f",
-    "professional_communication": "\U0001f5e3\ufe0f",
-    "sg_audit_credentials": "\U0001f3c5",
-    "audit_experience": "\U0001f50d",
-    "controls_and_regulatory": "\u2696\ufe0f",
-    "audit_tools_and_analysis": "\U0001f6e0\ufe0f",
-    "sg_hr_credentials": "\U0001f393",
-    "hr_operations_and_specialisation": "\U0001f465",
-    "stakeholder_management": "\U0001f91d",
-    "hr_systems_and_compliance": "\U0001f9fe",
-    "sg_banking_credentials": "\U0001f3e6",
-    "banking_experience": "\U0001f4bc",
-    "regulatory_and_risk": "\u26a0\ufe0f",
-    "systems_and_analysis": "\U0001f4c8",
+    "contact_and_summary": "📌",
+    "work_experience": "💼",
+    "education": "🎓",
+    "skills": "💻",
+    "projects": "🚀",
+    "formatting_readability": "📄",
+    "open_source": "🌐",
+    "self_projects": "🚀",
+    "production": "🏢",
+    "technical_skills": "💻",
+    "sg_technical_skills": "💻",
+    "projects_and_delivery": "🚀",
+    "production_experience": "🏢",
+    "professional_readiness": "📋",
+    "sg_certifications": "🎓",
+    "accounting_experience": "📊",
+    "finance_systems": "🖥️",
+    "professional_communication": "🗣️",
+    "sg_audit_credentials": "🏅",
+    "audit_experience": "🔍",
+    "controls_and_regulatory": "⚖️",
+    "audit_tools_and_analysis": "🛠️",
+    "sg_hr_credentials": "🎓",
+    "hr_operations_and_specialisation": "👥",
+    "stakeholder_management": "🤝",
+    "hr_systems_and_compliance": "🧾",
+    "sg_banking_credentials": "🏦",
+    "banking_experience": "💼",
+    "regulatory_and_risk": "⚠️",
+    "systems_and_analysis": "📈",
 }
 
 
@@ -88,9 +94,12 @@ def parse_args():
         "--model",
         default=DEFAULT_MODEL,
         help=(
-            "LLM model name to use for evaluation (default: %(default)s).\n"
-            "Examples:\n"
-            "  Ollama : llama3, mistral, gemma3, deepseek-r1\n"
+            "LLM model name to use for evaluation (default: %(default)s).
+"
+            "Examples:
+"
+            "  Ollama : llama3, mistral, gemma3, deepseek-r1
+"
             "  Gemini : gemini-1.5-flash, gemini-1.5-pro"
         ),
     )
@@ -126,7 +135,7 @@ def _safe_slug(value: str) -> str:
 
 
 def _should_include_github(role_type: str) -> bool:
-    return role_type in {DEFAULT_ROLE, "it_sg"}
+    return role_type == DEFAULT_ROLE
 
 
 def _resume_cache_path(pdf_path: str) -> str:
@@ -303,22 +312,26 @@ def _resolve_candidate_name(pdf_path: str, resume_data: JSONResume | None) -> st
 
 def _print_shared_footer(evaluation) -> None:
     if evaluation.bonus_points and evaluation.bonus_points.total > 0:
-        print(f"\n\u2b50 BONUS POINTS: +{evaluation.bonus_points.total}")
+        print(f"
+⭐ BONUS POINTS: +{evaluation.bonus_points.total}")
         if evaluation.bonus_points.breakdown:
             print(f"   {evaluation.bonus_points.breakdown}")
 
     if evaluation.deductions and evaluation.deductions.total > 0:
-        print(f"\n\u26a0\ufe0f  DEDUCTIONS: -{evaluation.deductions.total}")
+        print(f"
+⚠️  DEDUCTIONS: -{evaluation.deductions.total}")
         if evaluation.deductions.reasons:
             print(f"   {evaluation.deductions.reasons}")
 
     if evaluation.key_strengths:
-        print("\n\u2705 KEY STRENGTHS:")
+        print("
+✅ KEY STRENGTHS:")
         for i, item in enumerate(evaluation.key_strengths, start=1):
             print(f"   {i}. {item}")
 
     if evaluation.areas_for_improvement:
-        print("\n\U0001f527 AREAS FOR IMPROVEMENT:")
+        print("
+🔧 AREAS FOR IMPROVEMENT:")
         for i, item in enumerate(evaluation.areas_for_improvement, start=1):
             print(f"   {i}. {item}")
 
@@ -330,34 +343,41 @@ def print_evaluation_results(
     target_job_title: str = "",
     model_name: str = DEFAULT_MODEL,
 ) -> None:
-    print("\n" + "=" * 80)
-    print(f"\U0001f4ca RESUME EVALUATION RESULTS FOR: {candidate_name}")
-    print(f"\U0001f3af ROLE: {ROLE_DISPLAY_LABELS.get(role_type, role_type)}")
-    print(f"\U0001f916 MODEL: {model_name}")
+    print("
+" + "=" * 80)
+    print(f"📊 RESUME EVALUATION RESULTS FOR: {candidate_name}")
+    print(f"🎯 ROLE: {ROLE_DISPLAY_LABELS.get(role_type, role_type)}")
+    print(f"🤖 MODEL: {model_name}")
     if target_job_title:
-        print(f"\U0001f9ed TARGET JOB TITLE: {target_job_title}")
+        print(f"🧭 TARGET JOB TITLE: {target_job_title}")
     print("=" * 80)
 
     if evaluation is None:
-        print("\u274c No evaluation data available.")
+        print("❌ No evaluation data available.")
         print("=" * 80)
         return
 
     if isinstance(evaluation, GenericSGEvaluation):
-        print(f"\n\U0001f3af OVERALL SCORE: {evaluation.total_score()}/{evaluation.max_score()}")
-        print("\n\U0001f4c8 DETAILED SCORES:")
+        print(f"
+🎯 OVERALL SCORE: {evaluation.total_score()}/{evaluation.max_score()}")
+        print("
+📈 DETAILED SCORES:")
         print("-" * 60)
         for category_name, category_data in evaluation.scores.items():
-            icon = CATEGORY_ICONS.get(category_name, "\U0001f4cc")
+            icon = CATEGORY_ICONS.get(category_name, "📌")
             label = category_name.replace("_", " ").title()
             print(f"{icon} {label:<34} {category_data.score}/{category_data.max}")
-            print(f"   Evidence: {category_data.evidence}\n")
+            print(f"   Evidence: {category_data.evidence}
+")
         _print_shared_footer(evaluation)
-        print("\n" + "=" * 80)
+        print("
+" + "=" * 80)
         return
 
-    print(f"\n\U0001f3af OVERALL SCORE: {evaluation.total_score()}/{evaluation.max_score()}")
-    print("\n\U0001f4c8 DETAILED SCORES:")
+    print(f"
+🎯 OVERALL SCORE: {evaluation.total_score()}/{evaluation.max_score()}")
+    print("
+📈 DETAILED SCORES:")
     print("-" * 60)
     for category_name, category_data in [
         ("open_source", evaluation.scores.open_source),
@@ -365,13 +385,15 @@ def print_evaluation_results(
         ("production", evaluation.scores.production),
         ("technical_skills", evaluation.scores.technical_skills),
     ]:
-        icon = CATEGORY_ICONS.get(category_name, "\U0001f4cc")
+        icon = CATEGORY_ICONS.get(category_name, "📌")
         label = category_name.replace("_", " ").title()
         print(f"{icon} {label:<34} {category_data.score}/{category_data.max}")
-        print(f"   Evidence: {category_data.evidence}\n")
+        print(f"   Evidence: {category_data.evidence}
+")
 
     _print_shared_footer(evaluation)
-    print("\n" + "=" * 80)
+    print("
+" + "=" * 80)
 
 
 def _write_csv(
