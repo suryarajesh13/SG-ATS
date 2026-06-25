@@ -83,10 +83,10 @@ A new interactive entry point that guides the user through role selection before
 ```
 [1]  General / Any Role
 [2]  Software / IT Jobs
-[3]  Accounting Jobs (Singapore)
-[4]  Auditing Jobs (Singapore)
-[5]  HR Jobs (Singapore)
-[6]  Banking Jobs (Singapore)
+[3]  Accounting Jobs 
+[4]  Auditing Jobs 
+[5]  HR Jobs 
+[6]  Banking Jobs 
 ```
 
 After selecting a role, the user is prompted for the PDF path, optional target job title, and LLM model name.
