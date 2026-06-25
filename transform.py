@@ -480,22 +480,22 @@ def _extract_resume_base_columns(csv_row: Dict, file_name: str, resume_data, git
 def _extract_software_scores(csv_row: Dict, evaluation) -> None:
     if evaluation and hasattr(evaluation, "scores"):
         scores = evaluation.scores
-        csv_row["open_source_score"] = scores.open_source.score
-        csv_row["open_source_max"] = scores.open_source.max
-        csv_row["self_projects_score"] = scores.self_projects.score
-        csv_row["self_projects_max"] = scores.self_projects.max
-        csv_row["production_score"] = scores.production.score
-        csv_row["production_max"] = scores.production.max
         csv_row["technical_skills_score"] = scores.technical_skills.score
         csv_row["technical_skills_max"] = scores.technical_skills.max
+        csv_row["projects_and_delivery_score"] = scores.projects_and_delivery.score
+        csv_row["projects_and_delivery_max"] = scores.projects_and_delivery.max
+        csv_row["applied_experience_score"] = scores.applied_experience.score
+        csv_row["applied_experience_max"] = scores.applied_experience.max
+        csv_row["professional_readiness_score"] = scores.professional_readiness.score
+        csv_row["professional_readiness_max"] = scores.professional_readiness.max
         csv_row["total_score"] = evaluation.total_score()
         csv_row["total_max"] = evaluation.max_score()
     else:
         for col in [
-            "open_source_score", "open_source_max",
-            "self_projects_score", "self_projects_max",
-            "production_score", "production_max",
             "technical_skills_score", "technical_skills_max",
+            "projects_and_delivery_score", "projects_and_delivery_max",
+            "applied_experience_score", "applied_experience_max",
+            "professional_readiness_score", "professional_readiness_max",
             "total_score", "total_max",
         ]:
             csv_row[col] = "N/A"
