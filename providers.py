@@ -10,6 +10,10 @@ logger = logging.getLogger(__name__)
 
 OLLAMA_BASE_URL = "http://localhost:11434"
 
+# Set to None to disable HTTP timeout entirely (recommended for large local models).
+# Set to a number (seconds) to cap requests e.g. OLLAMA_HTTP_TIMEOUT = 600
+OLLAMA_HTTP_TIMEOUT = None
+
 
 class OllamaProvider:
     def chat(
@@ -29,10 +33,11 @@ class OllamaProvider:
         }
         if format is not None:
             payload["format"] = format
+
         response = requests.post(
-            f"{OLLAMA_BASE_URL}/api/chat",
+            OLLAMA_BASE_URL + "/api/chat",
             json=payload,
-            timeout=300,
+            timeout=OLLAMA_HTTP_TIMEOUT,
         )
         response.raise_for_status()
         return response.json()
@@ -86,3 +91,4 @@ class GeminiProvider:
         )
         response = gmodel.generate_content(user_msg)
         return response.text
+
