@@ -31,45 +31,45 @@ logging.basicConfig(
 )
 
 ROLE_DISPLAY_LABELS = {
-    "general": "General / Any Role",
-    "software": "Software / IT Jobs",
+    "general":       "General / Any Role",
+    "software":      "Software / IT Jobs",
     "accounting_sg": "Accounting Jobs (Singapore)",
-    "audit_sg": "Auditing Jobs (Singapore)",
-    "hr_sg": "HR Jobs (Singapore)",
-    "banking_sg": "Banking Jobs (Singapore)",
+    "audit_sg":      "Auditing Jobs (Singapore)",
+    "hr_sg":         "HR Jobs (Singapore)",
+    "banking_sg":    "Banking Jobs (Singapore)",
 }
 
 CATEGORY_ICONS = {
-    "contact_and_summary": "📌",
-    "work_experience": "💼",
-    "education": "🎓",
-    "skills": "💻",
-    "projects": "🚀",
-    "formatting_readability": "📄",
-    "open_source": "🌐",
-    "self_projects": "🚀",
-    "production": "🏢",
-    "technical_skills": "💻",
-    "sg_technical_skills": "💻",
-    "projects_and_delivery": "🚀",
-    "production_experience": "🏢",
-    "professional_readiness": "📋",
-    "sg_certifications": "🎓",
-    "accounting_experience": "📊",
-    "finance_systems": "🖥️",
-    "professional_communication": "🗣️",
-    "sg_audit_credentials": "🏅",
-    "audit_experience": "🔍",
-    "controls_and_regulatory": "⚖️",
-    "audit_tools_and_analysis": "🛠️",
-    "sg_hr_credentials": "🎓",
-    "hr_operations_and_specialisation": "👥",
-    "stakeholder_management": "🤝",
-    "hr_systems_and_compliance": "🧾",
-    "sg_banking_credentials": "🏦",
-    "banking_experience": "💼",
-    "regulatory_and_risk": "⚠️",
-    "systems_and_analysis": "📈",
+    "contact_and_summary":              "[Contact]",
+    "work_experience":                  "[Experience]",
+    "education":                        "[Education]",
+    "skills":                           "[Skills]",
+    "projects":                         "[Projects]",
+    "formatting_readability":           "[Formatting]",
+    "open_source":                      "[OpenSource]",
+    "self_projects":                    "[Projects]",
+    "production":                       "[Production]",
+    "technical_skills":                 "[TechSkills]",
+    "sg_technical_skills":              "[TechSkills]",
+    "projects_and_delivery":            "[Delivery]",
+    "production_experience":            "[Production]",
+    "professional_readiness":           "[Readiness]",
+    "sg_certifications":                "[Certs]",
+    "accounting_experience":            "[Accounting]",
+    "finance_systems":                  "[FinanceSys]",
+    "professional_communication":       "[Comms]",
+    "sg_audit_credentials":             "[AuditCreds]",
+    "audit_experience":                 "[AuditExp]",
+    "controls_and_regulatory":          "[Controls]",
+    "audit_tools_and_analysis":         "[AuditTools]",
+    "sg_hr_credentials":                "[HRCreds]",
+    "hr_operations_and_specialisation": "[HROps]",
+    "stakeholder_management":           "[Stakeholder]",
+    "hr_systems_and_compliance":        "[HRSystems]",
+    "sg_banking_credentials":           "[BankCreds]",
+    "banking_experience":               "[BankExp]",
+    "regulatory_and_risk":              "[RegRisk]",
+    "systems_and_analysis":             "[SysAnalysis]",
 }
 
 
@@ -88,19 +88,15 @@ def parse_args():
     parser.add_argument(
         "--target-job-title",
         default="",
-        help="Optional job title, e.g. 'Data Analyst' or 'AML Analyst'.",
+        help="Optional job title, e.g. Data Analyst or AML Analyst.",
     )
     parser.add_argument(
         "--model",
         default=DEFAULT_MODEL,
         help=(
-            "LLM model name to use for evaluation (default: %(default)s).
-"
-            "Examples:
-"
-            "  Ollama : llama3, mistral, gemma3, deepseek-r1
-"
-            "  Gemini : gemini-1.5-flash, gemini-1.5-pro"
+            "LLM model name to use for evaluation (default: %(default)s)."
+            " Examples: Ollama: llama3, mistral, gemma3, deepseek-r1"
+            " | Gemini: gemini-1.5-flash, gemini-1.5-pro"
         ),
     )
     return parser.parse_args()
@@ -139,20 +135,22 @@ def _should_include_github(role_type: str) -> bool:
 
 
 def _resume_cache_path(pdf_path: str) -> str:
-    return f"cache/resumecache_{Path(pdf_path).stem}.json"
+    return "cache/resumecache_" + Path(pdf_path).stem + ".json"
 
 
 def _github_cache_path(pdf_path: str) -> str:
-    return f"cache/githubcache_{Path(pdf_path).stem}.json"
+    return "cache/githubcache_" + Path(pdf_path).stem + ".json"
 
 
 def _evaluation_cache_path(
     pdf_path: str, role_type: str, target_job_title: str, model_name: str
 ) -> str:
     return (
-        f"cache/evalcache_{_safe_slug(Path(pdf_path).stem)}_"
-        f"{_safe_slug(role_type)}_{_safe_slug(target_job_title)}_"
-        f"{_safe_slug(model_name)}.json"
+        "cache/evalcache_"
+        + _safe_slug(Path(pdf_path).stem) + "_"
+        + _safe_slug(role_type) + "_"
+        + _safe_slug(target_job_title) + "_"
+        + _safe_slug(model_name) + ".json"
     )
 
 
@@ -312,28 +310,26 @@ def _resolve_candidate_name(pdf_path: str, resume_data: JSONResume | None) -> st
 
 def _print_shared_footer(evaluation) -> None:
     if evaluation.bonus_points and evaluation.bonus_points.total > 0:
-        print(f"
-⭐ BONUS POINTS: +{evaluation.bonus_points.total}")
+        print("BONUS POINTS: +" + str(evaluation.bonus_points.total))
         if evaluation.bonus_points.breakdown:
-            print(f"   {evaluation.bonus_points.breakdown}")
+            print("   " + evaluation.bonus_points.breakdown)
 
     if evaluation.deductions and evaluation.deductions.total > 0:
-        print(f"
-⚠️  DEDUCTIONS: -{evaluation.deductions.total}")
+        print("DEDUCTIONS: -" + str(evaluation.deductions.total))
         if evaluation.deductions.reasons:
-            print(f"   {evaluation.deductions.reasons}")
+            print("   " + evaluation.deductions.reasons)
 
     if evaluation.key_strengths:
-        print("
-✅ KEY STRENGTHS:")
+        print("")
+        print("KEY STRENGTHS:")
         for i, item in enumerate(evaluation.key_strengths, start=1):
-            print(f"   {i}. {item}")
+            print("   " + str(i) + ". " + item)
 
     if evaluation.areas_for_improvement:
-        print("
-🔧 AREAS FOR IMPROVEMENT:")
+        print("")
+        print("AREAS FOR IMPROVEMENT:")
         for i, item in enumerate(evaluation.areas_for_improvement, start=1):
-            print(f"   {i}. {item}")
+            print("   " + str(i) + ". " + item)
 
 
 def print_evaluation_results(
@@ -343,41 +339,41 @@ def print_evaluation_results(
     target_job_title: str = "",
     model_name: str = DEFAULT_MODEL,
 ) -> None:
-    print("
-" + "=" * 80)
-    print(f"📊 RESUME EVALUATION RESULTS FOR: {candidate_name}")
-    print(f"🎯 ROLE: {ROLE_DISPLAY_LABELS.get(role_type, role_type)}")
-    print(f"🤖 MODEL: {model_name}")
+    print("")
+    print("=" * 80)
+    print("RESUME EVALUATION RESULTS FOR: " + candidate_name)
+    print("ROLE: " + ROLE_DISPLAY_LABELS.get(role_type, role_type))
+    print("MODEL: " + model_name)
     if target_job_title:
-        print(f"🧭 TARGET JOB TITLE: {target_job_title}")
+        print("TARGET JOB TITLE: " + target_job_title)
     print("=" * 80)
 
     if evaluation is None:
-        print("❌ No evaluation data available.")
+        print("No evaluation data available.")
         print("=" * 80)
         return
 
     if isinstance(evaluation, GenericSGEvaluation):
-        print(f"
-🎯 OVERALL SCORE: {evaluation.total_score()}/{evaluation.max_score()}")
-        print("
-📈 DETAILED SCORES:")
+        print("")
+        print("OVERALL SCORE: " + str(evaluation.total_score()) + "/" + str(evaluation.max_score()))
+        print("")
+        print("DETAILED SCORES:")
         print("-" * 60)
         for category_name, category_data in evaluation.scores.items():
-            icon = CATEGORY_ICONS.get(category_name, "📌")
+            icon = CATEGORY_ICONS.get(category_name, "[--]")
             label = category_name.replace("_", " ").title()
-            print(f"{icon} {label:<34} {category_data.score}/{category_data.max}")
-            print(f"   Evidence: {category_data.evidence}
-")
+            print(icon + " " + label.ljust(34) + " " + str(category_data.score) + "/" + str(category_data.max))
+            print("   Evidence: " + category_data.evidence)
+            print("")
         _print_shared_footer(evaluation)
-        print("
-" + "=" * 80)
+        print("")
+        print("=" * 80)
         return
 
-    print(f"
-🎯 OVERALL SCORE: {evaluation.total_score()}/{evaluation.max_score()}")
-    print("
-📈 DETAILED SCORES:")
+    print("")
+    print("OVERALL SCORE: " + str(evaluation.total_score()) + "/" + str(evaluation.max_score()))
+    print("")
+    print("DETAILED SCORES:")
     print("-" * 60)
     for category_name, category_data in [
         ("open_source", evaluation.scores.open_source),
@@ -385,15 +381,15 @@ def print_evaluation_results(
         ("production", evaluation.scores.production),
         ("technical_skills", evaluation.scores.technical_skills),
     ]:
-        icon = CATEGORY_ICONS.get(category_name, "📌")
+        icon = CATEGORY_ICONS.get(category_name, "[--]")
         label = category_name.replace("_", " ").title()
-        print(f"{icon} {label:<34} {category_data.score}/{category_data.max}")
-        print(f"   Evidence: {category_data.evidence}
-")
+        print(icon + " " + label.ljust(34) + " " + str(category_data.score) + "/" + str(category_data.max))
+        print("   Evidence: " + category_data.evidence)
+        print("")
 
     _print_shared_footer(evaluation)
-    print("
-" + "=" * 80)
+    print("")
+    print("=" * 80)
 
 
 def _write_csv(
@@ -419,7 +415,7 @@ def _write_csv(
     csv_path = (
         "resume_evaluations.csv"
         if role_type == DEFAULT_ROLE
-        else f"resume_evaluations_{role_type}.csv"
+        else "resume_evaluations_" + role_type + ".csv"
     )
 
     file_exists = os.path.exists(csv_path)
@@ -481,7 +477,7 @@ if __name__ == "__main__":
     args = parse_args()
 
     if not os.path.exists(args.pdf_path):
-        print(f"Error: File '{args.pdf_path}' does not exist.")
+        print("Error: File '" + args.pdf_path + "' does not exist.")
         sys.exit(1)
 
     main(
