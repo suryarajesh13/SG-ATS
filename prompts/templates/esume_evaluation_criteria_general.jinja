@@ -1,0 +1,80 @@
+You are an expert resume reviewer with deep knowledge of Applicant Tracking Systems (ATS)
+and hiring standards across multiple industries.
+
+Evaluate the resume below against general professional standards applicable to ANY role or industry.
+
+{% if target_job_title %}
+The candidate is targeting the role: {{ target_job_title }}
+Use this as additional context where relevant, but keep the rubric general.
+{% endif %}
+
+---
+RESUME CONTENT:
+{{ text_content }}
+---
+
+Score the following six categories. Return ONLY valid JSON — no markdown, no extra text.
+
+JSON STRUCTURE:
+{
+  "scores": {
+    "contact_and_summary":    {"score": <int>, "max": 10, "evidence": "<brief reason>"},
+    "work_experience":        {"score": <int>, "max": 25, "evidence": "<brief reason>"},
+    "education":              {"score": <int>, "max": 15, "evidence": "<brief reason>"},
+    "skills":                 {"score": <int>, "max": 15, "evidence": "<brief reason>"},
+    "projects":               {"score": <int>, "max": 20, "evidence": "<brief reason>"},
+    "formatting_readability": {"score": <int>, "max": 15, "evidence": "<brief reason>"}
+  },
+  "bonus_points": {"total": <int>, "breakdown": "<reason or empty string>"},
+  "deductions":   {"total": <int>, "reasons":   "<reason or empty string>"},
+  "key_strengths": ["<string>", "..."],
+  "areas_for_improvement": ["<string>", "..."]
+}
+
+SCORING RUBRIC:
+
+1. contact_and_summary (max 10)
+   - Full name, professional email, phone number present            (3 pts)
+   - LinkedIn / GitHub / portfolio URL present                      (2 pts)
+   - Clear, concise professional summary / objective                (3 pts)
+   - Location or work-authorisation note (optional but helpful)     (2 pts)
+
+2. work_experience (max 25)
+   - Relevant work experience exists                                (5 pts)
+   - Uses strong action verbs (Led, Built, Reduced, Increased...)   (5 pts)
+   - At least 2 quantified achievements (%, $, numbers)             (5 pts)
+   - Logical career progression / seniority growth                  (5 pts)
+   - Descriptions are concise (1-3 bullets per role)                (5 pts)
+
+3. education (max 15)
+   - Degree, institution, and graduation year all present           (5 pts)
+   - Field of study is relevant to target role                      (5 pts)
+   - Relevant coursework, honours, or GPA listed (where useful)     (5 pts)
+
+4. skills (max 15)
+   - Technical skills / tools clearly listed                        (5 pts)
+   - Soft skills or interpersonal competencies mentioned            (5 pts)
+   - Certifications or professional development courses listed      (5 pts)
+
+5. projects (max 20)
+   - At least one project described with outcome / impact           (7 pts)
+   - Tech stack or methodologies mentioned                          (7 pts)
+   - Links to live project / GitHub / portfolio provided            (6 pts)
+
+6. formatting_readability (max 15)
+   - Single-page or well-structured multi-page layout               (3 pts)
+   - Consistent font, spacing, and section headers                  (3 pts)
+   - No spelling or grammar errors visible                          (3 pts)
+   - ATS-friendly: no tables, graphics, or multi-column layouts     (3 pts)
+   - File is named professionally                                   (3 pts)
+
+BONUS POINTS (up to +5):
+   - Unique personal branding or portfolio link with strong content
+   - Open-source contributions or publications
+   - Multilingual proficiency listed
+
+DEDUCTIONS (up to -5):
+   - Spelling / grammar errors clearly present                      (-2)
+   - Unprofessional email address                                   (-1)
+   - Excessive personal details                                     (-1)
+   - Resume exceeds 2 pages for under 5 years experience            (-1)
