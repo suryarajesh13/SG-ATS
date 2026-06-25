@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import json
 import logging
 from typing import Optional
@@ -14,6 +15,55 @@ from prompt import DEFAULT_MODEL, MODEL_PARAMETERS
 from prompts.template_manager import DEFAULT_ROLE, TemplateManager, is_sg_role
 
 logger = logging.getLogger(__name__)
+
+
+def _parse_llm_json(response_text: str) -> dict:
+    """
+    Robustly parse LLM output as JSON.
+    Handles:
+      - Proper JSON with double quotes
+      - Python-style dicts with single quotes
+      - Extra text before/after the JSON block
+      - Trailing commas
+    """
+    response_text = response_text.strip()
+
+    # Extract the outermost {...} block
+    json_start = response_text.find("{")
+    json_end = response_text.rfind("}")
+    if json_start != -1 and json_end != -1:
+        response_text = response_text[json_start:json_end + 1]
+
+    # Attempt 1: strict JSON
+    try:
+        return json.loads(response_text)
+    except json.JSONDecodeError as e:
+        logger.debug("json.loads failed (%s), trying fallbacks...", e)
+
+    # Attempt 2: remove trailing commas before } or ] then retry
+    import re
+    cleaned = re.sub(r",\s*([}\]])", r"", response_text)
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        pass
+
+    # Attempt 3: ast.literal_eval for Python-style single-quoted dicts
+    try:
+        parsed = ast.literal_eval(response_text)
+        if isinstance(parsed, dict):
+            logger.debug("Parsed via ast.literal_eval fallback")
+            return parsed
+    except Exception:
+        pass
+
+    # All attempts failed
+    logger.error("Could not parse LLM response as JSON. Raw output:")
+    logger.error(response_text)
+    raise ValueError(
+        "LLM did not return valid JSON. Raw output logged above. "
+        "Try a different model or check your prompt templates."
+    )
 
 
 class ResumeEvaluator:
@@ -65,7 +115,7 @@ class ResumeEvaluator:
         if hasattr(response, "content"):
             return response.content
 
-        raise ValueError(f"Unexpected LLM response shape: {type(response)}")
+        raise ValueError("Unexpected LLM response shape: " + str(type(response)))
 
     def _build_prompt(
         self,
@@ -100,7 +150,7 @@ class ResumeEvaluator:
             response_schema=EvaluationData.model_json_schema(),
         )
         response_text = extract_json_from_response(response_text)
-        payload = self._sanitise_payload(json.loads(response_text))
+        payload = self._sanitise_payload(_parse_llm_json(response_text))
         return EvaluationData(**payload)
 
     def evaluate_resume_sg(
@@ -110,7 +160,7 @@ class ResumeEvaluator:
         target_job_title: str = "",
     ) -> GenericSGEvaluation:
         if not is_sg_role(role_type):
-            raise ValueError(f"Unsupported SG role type: {role_type}")
+            raise ValueError("Unsupported SG role type: " + role_type)
 
         system_message, user_prompt = self._build_prompt(
             resume_text=resume_text,
@@ -123,7 +173,7 @@ class ResumeEvaluator:
             response_schema=None,
         )
         response_text = extract_json_from_response(response_text)
-        payload = self._sanitise_payload(json.loads(response_text))
+        payload = self._sanitise_payload(_parse_llm_json(response_text))
         evaluation = GenericSGEvaluation(**payload)
         assert_sg_categories(evaluation, role_type)
         return evaluation
@@ -145,3 +195,4 @@ class ResumeEvaluator:
         except Exception as exc:
             logger.error("Error evaluating resume for role '%s': %s", role_type, exc)
             raise
+
